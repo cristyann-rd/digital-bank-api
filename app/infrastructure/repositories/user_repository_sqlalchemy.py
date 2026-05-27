@@ -2,8 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from app.infrastructure.models.user import UserModel
-from app.domain.entities.user import User
-from app.domain.repositories.user_repository import UserRepository
+from app.domain.repositories.user_repository import UserRepository, User
 
 class UserRepositorySQLAlchemy(UserRepository):
     

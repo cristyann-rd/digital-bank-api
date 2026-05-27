@@ -1,20 +1,22 @@
 from abc import ABC, abstractmethod
+
 from app.domain.entities.account import Account
 
+
 class AccountRepository(ABC):
-    
+
     @abstractmethod
-    async def create(self, account) -> Account:
+    async def create(self, account: Account) -> Account:
         pass
 
     @abstractmethod
-    async def get_by_id(self, account_id) -> Account | None:
+    async def find_by_account_number(self, account_number: str,) -> Account | None:
         pass
 
     @abstractmethod
-    async def get_account_by_user_id(self, user_id: int) -> list[Account]:
+    async def delete(self, account_number: str) -> bool:
         pass
 
     @abstractmethod
-    async def account_number(self, account_number: int) -> str:
+    async def list_accounts(self) -> list[Account]:
         pass

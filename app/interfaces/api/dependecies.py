@@ -16,13 +16,13 @@ from src.app.application.use_cases.auth_service import AuthService
 
 OAuth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
-def get_user_repostitory(db: AsyncSession = Depends(get_db)) -> UserRepository:
+def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserRepository:
     return UserRepositorySQLAlchemy(db)
 
-def get_user_service(user_repository: UserRepository = Depends(get_user_repostitory)) -> UserService:
+def get_user_service(user_repository: UserRepository = Depends(get_user_repository)) -> UserService:
     return UserService(user_repository)
 
-def get_auth_service(user_repository: UserRepository = Depends(get_user_repostitory)) -> AuthService:
+def get_auth_service(user_repository: UserRepository = Depends(get_user_repository)) -> AuthService:
     return AuthService(user_repository)
 
 async def get_current_user(

@@ -6,8 +6,8 @@ from src.app.application.services.account_digit import (calculate_account_digit)
 
 @event.listens_for(AccountModel, "before_insert")
 def generate_digit(
-    mapper,
-    connection,
+    _mapper,
+    _connection,
     target
 ):
 

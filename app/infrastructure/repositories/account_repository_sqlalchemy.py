@@ -1,50 +1,90 @@
-from sqlalchemy import select
+from typing import cast
+
+from sqlalchemy import delete, select
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.infrastructure.models.account import AccountModel
 from app.domain.entities.account import Account
-from app.domain.repositories.account_repository import AccountRepository
+from app.domain.repositories.account_repository import (
+    AccountRepository,
+)
+from app.infrastructure.models.account import AccountModel
+
 
 class AccountRepositorySQLAlchemy(AccountRepository):
-    
-
-    def _to_domain(self, db_user: AccountModel) -> Account:
-        return Account(
-               account_id=db_user.account_id,
-                user_id=db_user.user_id,
-                name=db_user.name,
-                email=db_user.email,
-                password_hash=db_user.password_hash,
-                balance=db_user.balance,
-                currency=db_user.currency
-        )
 
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    def _to_domain(self, db_account: AccountModel) -> Account:
+        return Account(
+            account_number=db_account.account_number,
+            user_id=db_account.user_id,
+            name=db_account.name,
+            email=db_account.email,
+            balance=db_account.balance,
+            currency=db_account.currency,
+        )
 
     async def create(self, account: Account) -> Account:
-        async with AsyncSession() as session:
-            new_account = AccountModel(
-                user_id=account.user_id,
-                account_id=account.account_id,
-                balance=account.balance,
-                currency=account.currency,
-            )
-            self.session.add(new_account)
-            await session.commit()
-            await session.refresh(new_account)
-            return new_account   
 
+        new_account = AccountModel(
+            user_id=account.user_id,
+            account_number=account.account_number,
+            balance=account.balance,
+            currency=account.currency,
+        )
 
-    async def get_by_id(self, account_id: int) -> AccountModel | None:
-        async with AsyncSession() as session:
-            result = await session.execute(select(AccountModel).where(AccountModel.account_id == account_id))
-            account = result.scalars().first()
-            return account
+        self.session.add(new_account)
 
-    async def get_account_by_user_id(self, user_id: int) -> list[Account]:
-        async with AsyncSession() as session:
-            result = await session.execute(select(AccountModel).where(AccountModel.user_id == user_id))
-            accounts = result.scalars().all()
-            return [self._to_domain(account) for account in accounts]
+        await self.session.commit()
+        await self.session.refresh(new_account)
+
+        return self._to_domain(new_account)
+
+    async def find_by_account_number(
+        self,
+        account_number: str,
+    ) -> Account | None:
+
+        stmt = select(AccountModel).where(
+            AccountModel.account_number == account_number
+        )
+
+        result = await self.session.execute(stmt)
+
+        account = result.scalars().first()
+
+        if account is None:
+            return None
+
+        return self._to_domain(account)
+
+    async def delete(self, account_number: str) -> bool:
+
+        stmt = delete(AccountModel).where(
+            AccountModel.account_number == account_number
+        )
+
+        result = await self.session.execute(stmt)
+
+        cursor_result = cast(CursorResult, result)
+
+        await self.session.commit()
+
+        return cursor_result.rowcount > 0
+
+    async def list_accounts(self) -> list[Account]:
+
+        stmt = select(AccountModel).order_by(
+            AccountModel.account_number
+        )
+
+        result = await self.session.execute(stmt)
+
+        accounts = result.scalars().all()
+
+        return [
+            self._to_domain(account)
+            for account in accounts
+        ]
