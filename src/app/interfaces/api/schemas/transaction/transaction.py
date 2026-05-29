@@ -1,11 +1,9 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
 from decimal import Decimal
 from enum import Enum
-from uuid import UUID
 
-@dataclass
-class MoneyOperationRequest:
-    transaction_id: UUID
+
+class MoneyOperationRequest(BaseModel):
     amount: Decimal
     description: str | None = None
 

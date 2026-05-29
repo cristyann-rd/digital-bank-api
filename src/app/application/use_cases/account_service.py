@@ -1,5 +1,6 @@
 import uuid
 from uuid import UUID
+from decimal import Decimal
 
 from src.app.domain.repositories.account_repository import AccountRepository, Account
 
@@ -12,7 +13,7 @@ class AccountService:
    
     
     async def create(self, user_id: UUID, name: str,  
-                             balance: float, currency: str):
+                             balance: Decimal, currency: str):
         account = Account(
             account_number = str(uuid.uuid4()),
             user_id=user_id,

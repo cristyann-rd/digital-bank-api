@@ -1,9 +1,10 @@
 from pydantic import BaseModel, ConfigDict
+from decimal import Decimal
 
 
 class AccountCreate(BaseModel):
     name: str
-    balance: float
+    balance: Decimal
     currency: str
 
 class AccountResponse(BaseModel):

@@ -1,9 +1,10 @@
 import uuid
 
-from sqlalchemy import Integer,Boolean, String, DateTime, Float, ForeignKey, func
+from sqlalchemy import Integer,Boolean, String, DateTime, Numeric, ForeignKey, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from src.app.infrastructure.database.base import Base
+from decimal import Decimal
 
 
 class AccountModel(Base):
@@ -14,7 +15,7 @@ class AccountModel(Base):
     account_number : Mapped[str] = mapped_column(String(36), unique=True, index=True, nullable=False, default=lambda: str(uuid.uuid4()))
     name : Mapped[str] = mapped_column(String, nullable=False)
     account_digit : Mapped[str | None] = mapped_column(String(1), nullable=True)
-    balance: Mapped[float] = mapped_column(Float, nullable=False)
+    balance: Mapped[Decimal]= mapped_column(Numeric, nullable=False)
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     
