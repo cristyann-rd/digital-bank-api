@@ -6,6 +6,7 @@ class AccountCreate(BaseModel):
     name: str
     balance: Decimal
     currency: str
+    is_active: bool
 
 class AccountResponse(BaseModel):
     account_number: str

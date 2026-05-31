@@ -13,13 +13,14 @@ class AccountService:
    
     
     async def create(self, user_id: UUID, name: str,  
-                             balance: Decimal, currency: str):
+                             balance: Decimal, currency: str, is_active:bool):
         account = Account(
             account_number = str(uuid.uuid4()),
             user_id=user_id,
             name=name,
             balance=balance,
-            currency=currency
+            currency=currency, 
+            is_active=is_active
         )
         return await self.account_repository.create(account)
     

@@ -23,6 +23,7 @@ class AccountRepositorySQLAlchemy(AccountRepository):
             account_number=db_account.account_number,
             user_id=db_account.user_id,
             name=db_account.name,
+            is_active=db_account.is_active,
             balance=db_account.balance,
             currency=db_account.currency,
         )
