@@ -30,6 +30,7 @@ async def create_account(
 ):
     return await account_service.create(
         user_id=current_user.id,
+        is_active=payload.is_active,
         name=payload.name,
         balance=payload.balance,
         currency=payload.currency,
