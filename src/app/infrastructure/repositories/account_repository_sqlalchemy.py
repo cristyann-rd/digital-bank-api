@@ -1,5 +1,6 @@
 
 from typing import cast
+from uuid import UUID
 
 
 from sqlalchemy import delete, select
@@ -18,9 +19,22 @@ class AccountRepositorySQLAlchemy(AccountRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    def _to_model(self, account: Account) -> AccountModel:
+        return AccountModel(
+            account_id=account.account_id,
+            account_number=account.account_number,
+            user_id=account.user_id,
+            name=account.name,
+            balance=account.balance,
+            currency=account.currency,
+            is_active=account.is_active,
+        )
+
+
     def _to_domain(self, db_account: AccountModel) -> Account:
         return Account(
             account_number=db_account.account_number,
+            account_id=db_account.account_id,
             user_id=db_account.user_id,
             name=db_account.name,
             is_active=db_account.is_active,
@@ -39,7 +53,7 @@ class AccountRepositorySQLAlchemy(AccountRepository):
 
         self.session.add(new_account)
 
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(new_account)
 
         return self._to_domain(new_account)
@@ -72,7 +86,7 @@ class AccountRepositorySQLAlchemy(AccountRepository):
 
         cursor_result = cast(CursorResult, result)
 
-        await self.session.commit()
+        await self.session.flush()
 
         return cursor_result.rowcount > 0
 
@@ -90,3 +104,8 @@ class AccountRepositorySQLAlchemy(AccountRepository):
             self._to_domain(account)
             for account in accounts
         ]
+
+    async def save(self, account: Account) -> None:
+        model = self._to_model(account)
+
+        await self.session.merge(model)

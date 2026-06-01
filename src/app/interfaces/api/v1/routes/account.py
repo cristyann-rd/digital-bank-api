@@ -37,12 +37,14 @@ async def create_account(
     )
 
 
-@private_router.delete("/{account_number}", status_code=status.HTTP_204_NO_CONTENT)
+@private_router.delete("/accounts/{account_number}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_account(
     account_number: str,
+    current_user: User = Depends(get_current_user),
     service: AccountService = Depends(get_account_service),
 ):
-    deleted = await service.delete(account_number)
+    
+    deleted = await service.delete(current_user.id, account_number)
 
     if not deleted:
         raise HTTPException(
@@ -60,9 +62,11 @@ async def delete_account(
 )
 async def find_by_account_number(
     account_number: str,
+     current_user: User = Depends(get_current_user),
     account_service: AccountService = Depends(get_account_service),
 ):
-    account = await account_service.find_by_account_number(account_number)
+
+    account = await account_service.find_by_account_number(current_user.id, account_number)
     if account is None:
         raise HTTPException(
             status.HTTP_404_NOT_FOUND,

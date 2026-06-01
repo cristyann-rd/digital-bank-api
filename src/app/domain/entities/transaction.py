@@ -15,7 +15,7 @@ class MoneyOperationRequest:
     description: str | None = None
 
 @dataclass
-class AccountTransaction:
+class Transaction:
     transaction_id: UUID
     account_id: UUID
     amount: Decimal

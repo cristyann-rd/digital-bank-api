@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
+from uuid import UUID
 
-from src.app.domain.entities.account import Account, AccountInactiveError, InvalidDepositAmount
+from src.app.domain.entities.account import Account
 
 
 class AccountRepository(ABC):
@@ -19,4 +20,16 @@ class AccountRepository(ABC):
 
     @abstractmethod
     async def list_accounts(self) -> list[Account]:
+        pass
+
+    @abstractmethod
+    async def get_by_id(self, account_id: UUID) -> Account | None:
+        pass
+
+    @abstractmethod
+    async def get_by_id_for_update(self, account_id: UUID) -> Account | None:
+        pass
+
+    @abstractmethod
+    async def save(self, account: Account) -> None:
         pass
