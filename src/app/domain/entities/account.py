@@ -1,8 +1,11 @@
+import uuid
 from uuid import UUID
+
 from dataclasses import dataclass
 from decimal import Decimal
 
-from src.app.domain.exceptions.account_exceptions import (InactiveAccountError, 
+
+from app.domain.exceptions.account_exceptions import (InactiveAccountError, 
                                                           InvalidAmountError, 
                                                           InsufficientFundsError)
 
@@ -17,6 +20,23 @@ class Account:
     currency: str
     is_active: bool = True
 
+
+    @classmethod
+    def open(
+            cls,
+            user_id: UUID,
+            name: str,
+            currency: str,
+        ) -> "Account":
+            return cls(
+                account_number=str(uuid.uuid4()),
+                account_id=uuid.uuid4(),
+                user_id=user_id,
+                name=name,
+                balance=Decimal("0.00"),
+                currency=currency,
+                is_active=True,
+            )
 
 
     def _ensure_active(self) -> None:
@@ -58,3 +78,4 @@ class Account:
             raise InsufficientFundsError("Saldo insuficiente.")
 
         self.balance -= amount
+   

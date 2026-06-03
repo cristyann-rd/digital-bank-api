@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.infrastructure.database.connection import get_db
 from src.app.domain.repositories.user_repository import UserRepository, User
 from src.app.infrastructure.repositories.user_repository_sqlalchemy import UserRepositorySQLAlchemy
-from src.app.application.use_cases.user_service import UserService
-from src.app.application.use_cases.auth_service import AuthService
+from app.application.services.user_service import UserService
+from app.application.services.auth_service import AuthService
 """from app.services.exceptions import (
     InvalidTokenError,
     ExpiredTokenError,
@@ -32,7 +32,7 @@ async def get_current_user(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
+            detail="Credenciais inválidas",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user

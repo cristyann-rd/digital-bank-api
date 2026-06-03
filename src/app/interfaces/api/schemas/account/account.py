@@ -10,10 +10,15 @@ class AccountCreate(BaseModel):
     currency: str
     is_active: bool
 
+
+class AccountUpdate(BaseModel):
+    is_active: bool
+
 class AccountResponse(BaseModel):
     account_number: str
     balance: float
     currency: str
+    is_active: bool
     model_config = ConfigDict(from_attributes=True)
 
 class MoneyOperationRequest(BaseModel):
