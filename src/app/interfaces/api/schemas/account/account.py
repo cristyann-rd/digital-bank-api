@@ -6,9 +6,7 @@ from datetime import datetime
 
 class AccountCreate(BaseModel):
     name: str
-    balance: Decimal
     currency: str
-    is_active: bool
 
 
 class AccountUpdate(BaseModel):

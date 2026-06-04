@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.app.domain.entities.user import User
 from src.app.interfaces.api.dependency.account_dependencies import (
-    AccountService,
-    get_account_service,
+    AccountUseCase,
+    get_account_use_case,
 )
 from src.app.interfaces.api.dependency.user_dependencies import get_current_user
 from src.app.interfaces.api.schemas.account.account import (
@@ -27,12 +27,13 @@ private_router = APIRouter(
 async def create_account(
     payload: AccountCreate,
     current_user: User = Depends(get_current_user),
-    account_service: AccountService = Depends(get_account_service),
+    account_service: AccountUseCase = Depends(get_account_use_case),
 ):
     return await account_service.create(
         user_id=current_user.id,
         name=payload.name,
         currency=payload.currency,
+        
     )
 
 
@@ -45,7 +46,7 @@ async def create_account(
 async def find_by_account_number(
     account_number: str,
      current_user: User = Depends(get_current_user),
-    account_service: AccountService = Depends(get_account_service),
+    account_service: AccountUseCase = Depends(get_account_use_case),
 ):
 
     account = await account_service.find_by_account_number(current_user.id, account_number)
@@ -63,7 +64,7 @@ async def find_by_account_number(
     status_code=status.HTTP_200_OK,
 )
 async def list_accounts(
-    account_service: AccountService = Depends(get_account_service),
+    account_service: AccountUseCase = Depends(get_account_use_case),
     current_user: User = Depends(get_current_user)
 ):
     accounts = await account_service.list_accounts(current_user.id)
@@ -82,7 +83,7 @@ async def update_account(
     account_number: str,
     payload: AccountUpdate,
     current_user: User = Depends(get_current_user),
-    account_service: AccountService = Depends(get_account_service),
+    account_service: AccountUseCase = Depends(get_account_use_case),
 ):
     account = await account_service.find_by_account_number(current_user.id, account_number)
     if account is None:
@@ -90,16 +91,15 @@ async def update_account(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Numero de conta nao encontrado",
         )
-    if payload.is_active is not None:
+    if payload.is_active is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Informe o campo o campo do status da conta",
         )
     
-    account = await account_service.update_account_status(
+    account = await account_service.get_by_account_for_update(
     user_id=current_user.id,
     account_number=account_number,
-    is_active=payload.is_active,
 )
 
     return account

@@ -1,12 +1,15 @@
 import uuid
 from uuid import UUID
 
-from src.app.domain.repositories.user_repository import UserRepository, User
+from src.app.domain.entities.user import User
+from src.app.domain.repositories.user_repository import UserRepository
+from src.app.domain.validators.password_validator import PasswordValidator
 from src.app.core.security import hash_password
 
 class UserService:
-    def __init__(self, user_repository: UserRepository):
+    def __init__(self, user_repository: UserRepository, password_validator: PasswordValidator):
         self.user_repository = user_repository
+        self.password_validator = password_validator
 
     async def get_by_id(self, user_id: UUID):
         return await self.user_repository.get_by_id(user_id)
@@ -15,7 +18,10 @@ class UserService:
         return await self.user_repository.get_by_email(email)
 
     async def create_user(self, name: str, email: str, password: str):
+
+        self.password_validator.validate(password)
         hashed_password = hash_password(password)
+
         user = User(
             id= uuid.uuid4(),
             name=name,

@@ -26,7 +26,7 @@ class WithdrawMoneyUseCase:
         description: str | None = None,
     ) -> None:
         async with self.uow:
-            account = await self.uow.accounts.get_by_account_for_update(
+            account = await self.uow.accounts.get_by_account_for_update(user_id,
                 account_number
             )
 

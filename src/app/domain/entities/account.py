@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 
-from app.domain.exceptions.account_exceptions import (InactiveAccountError, 
+from src.app.domain.exceptions.account_exceptions import (InactiveAccountError, 
                                                           InvalidAmountError, 
                                                           InsufficientFundsError)
 
@@ -27,9 +27,10 @@ class Account:
             user_id: UUID,
             name: str,
             currency: str,
+            account_number: str
         ) -> "Account":
             return cls(
-                account_number=str(uuid.uuid4()),
+                account_number=account_number,
                 account_id=uuid.uuid4(),
                 user_id=user_id,
                 name=name,

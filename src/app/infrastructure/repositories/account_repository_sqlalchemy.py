@@ -126,3 +126,21 @@ class AccountRepositorySQLAlchemy(AccountRepository):
         accounts = result.scalars().all()
 
         return [self._to_domain(account) for account in accounts]
+
+    async def update_account_status(self, user_id: UUID, account_number: str, is_active: bool) -> Account | None:
+        stmt = select(AccountModel).where(
+            AccountModel.account_number == account_number,
+            AccountModel.user_id == user_id
+        ).with_for_update()
+
+        result = await self.session.execute(stmt)
+        db_account = result.scalar_one_or_none()
+
+        if db_account is None:
+            return None
+
+        db_account.is_active = is_active
+
+        await self.session.flush()
+
+        return self._to_domain(db_account)
