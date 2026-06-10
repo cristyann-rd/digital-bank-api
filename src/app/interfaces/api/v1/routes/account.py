@@ -94,12 +94,13 @@ async def update_account(
     if payload.is_active is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Informe o campo o campo do status da conta",
+            detail="O campo 'is_active' é obrigatório para atualizar o status da conta.",
         )
     
-    account = await account_service.get_by_account_for_update(
+    account = await account_service.update_account_status(
     user_id=current_user.id,
     account_number=account_number,
+    is_active=payload.is_active
 )
 
     return account
