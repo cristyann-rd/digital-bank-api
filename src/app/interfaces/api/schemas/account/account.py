@@ -14,7 +14,7 @@ class AccountUpdate(BaseModel):
 
 class AccountResponse(BaseModel):
     account_number: str
-    balance: float
+    balance: Decimal
     currency: str
     is_active: bool
     model_config = ConfigDict(from_attributes=True)
