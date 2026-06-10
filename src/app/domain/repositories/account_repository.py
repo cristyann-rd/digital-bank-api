@@ -37,3 +37,7 @@ class AccountRepository(ABC):
     @abstractmethod
     async def list_accounts(self, user_id: UUID) -> list[Account]:
         pass
+
+    @abstractmethod
+    async def update_account_status(self, user_id: UUID, account_number: str, is_active: bool) -> Account | None:
+        pass

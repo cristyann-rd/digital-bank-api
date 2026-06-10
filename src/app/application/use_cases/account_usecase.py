@@ -43,3 +43,8 @@ class AccountUseCase:
     async def get_by_account_for_update(self, user_id: UUID, account_number: str):
         return await self.uow.accounts.get_by_account_for_update(user_id=user_id, account_number=account_number)
     
+    async def update_account_status(self, user_id: UUID, account_number: str, is_active: bool):
+        async with self.uow:
+            account = await self.uow.accounts.update_account_status(user_id=user_id, account_number=account_number, is_active=is_active)
+            await self.uow.commit()
+            return account
