@@ -13,7 +13,7 @@ class AccountOwnershipError(Exception):
     pass
 
 
-class DepositMoneyUseCase:
+class WithdrawMoneyUseCase:
 
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
@@ -26,9 +26,8 @@ class DepositMoneyUseCase:
         description: str | None = None,
     ) -> None:
         async with self.uow:
-            account = await self.uow.accounts.get_by_account_for_update(
-                user_id=user_id,
-                account_number=account_number
+            account = await self.uow.accounts.get_by_account_for_update(user_id,
+                account_number
             )
 
             if account is None:
@@ -39,14 +38,14 @@ class DepositMoneyUseCase:
                     "A conta não pertence ao usuário informado."
                 )
 
-            account.deposit(amount)
+            account.withdraw(amount)
 
             transaction = Transaction(
                 transaction_id=uuid4(),
                 account_number=account.account_number,
                 account_id=account.account_id,
                 amount=amount,
-                transaction_type=TransactionType.DEPOSIT,
+                transaction_type=TransactionType.WITHDRAW,
                 balance_after=account.balance,
                 description=description,
             )

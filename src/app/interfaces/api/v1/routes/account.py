@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.app.domain.entities.user import User
 from src.app.interfaces.api.dependency.account_dependencies import (
-    AccountService,
-    get_account_service,
+    AccountUseCase,
+    get_account_use_case,
 )
 from src.app.interfaces.api.dependency.user_dependencies import get_current_user
 from src.app.interfaces.api.schemas.account.account import (
     AccountCreate,
+    AccountUpdate,
     AccountResponse,
 )
 
@@ -26,31 +27,15 @@ private_router = APIRouter(
 async def create_account(
     payload: AccountCreate,
     current_user: User = Depends(get_current_user),
-    account_service: AccountService = Depends(get_account_service),
+    account_service: AccountUseCase = Depends(get_account_use_case),
 ):
     return await account_service.create(
         user_id=current_user.id,
-        is_active=payload.is_active,
         name=payload.name,
-        balance=payload.balance,
         currency=payload.currency,
+        
     )
 
-
-@private_router.delete("/{account_number}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_account(
-    account_number: str,
-    service: AccountService = Depends(get_account_service),
-):
-    deleted = await service.delete(account_number)
-
-    if not deleted:
-        raise HTTPException(
-            status.HTTP_404_NOT_FOUND,
-            detail="Numero de conta nao encontrado",
-        )
-
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @private_router.get(
@@ -60,9 +45,11 @@ async def delete_account(
 )
 async def find_by_account_number(
     account_number: str,
-    account_service: AccountService = Depends(get_account_service),
+     current_user: User = Depends(get_current_user),
+    account_service: AccountUseCase = Depends(get_account_use_case),
 ):
-    account = await account_service.find_by_account_number(account_number)
+
+    account = await account_service.find_by_account_number(current_user.id, account_number)
     if account is None:
         raise HTTPException(
             status.HTTP_404_NOT_FOUND,
@@ -77,12 +64,42 @@ async def find_by_account_number(
     status_code=status.HTTP_200_OK,
 )
 async def list_accounts(
-    account_service: AccountService = Depends(get_account_service),
+    account_service: AccountUseCase = Depends(get_account_use_case),
+    current_user: User = Depends(get_current_user)
 ):
-    accounts = await account_service.list_accounts()
+    accounts = await account_service.list_accounts(current_user.id)
     if not accounts:
         raise HTTPException(
             status.HTTP_404_NOT_FOUND,
             detail="Nenhuma conta encontrada",
         )
     return accounts
+
+@private_router.patch(
+    "/{account_number}", 
+    response_model=AccountResponse,
+    status_code=status.HTTP_200_OK,)
+async def update_account(
+    account_number: str,
+    payload: AccountUpdate,
+    current_user: User = Depends(get_current_user),
+    account_service: AccountUseCase = Depends(get_account_use_case),
+):
+    account = await account_service.find_by_account_number(current_user.id, account_number)
+    if account is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Numero de conta nao encontrado",
+        )
+    if payload.is_active is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Informe o campo o campo do status da conta",
+        )
+    
+    account = await account_service.get_by_account_for_update(
+    user_id=current_user.id,
+    account_number=account_number,
+)
+
+    return account

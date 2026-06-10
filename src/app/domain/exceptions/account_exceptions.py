@@ -1,2 +1,9 @@
-class AccountInactiveError(Exception):
-    """Erro lançado quando a conta não existe ou está inativa."""
+
+class InactiveAccountError(Exception):
+    pass
+
+class InvalidAmountError(Exception):
+    pass
+
+class InsufficientFundsError(Exception):
+    pass

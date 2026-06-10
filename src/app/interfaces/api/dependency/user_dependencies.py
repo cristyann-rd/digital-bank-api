@@ -7,6 +7,8 @@ from src.app.domain.repositories.user_repository import UserRepository, User
 from src.app.infrastructure.repositories.user_repository_sqlalchemy import UserRepositorySQLAlchemy
 from src.app.application.use_cases.user_service import UserService
 from src.app.application.use_cases.auth_service import AuthService
+from src.app.domain.validators.password_validator import PasswordValidator
+
 """from app.services.exceptions import (
     InvalidTokenError,
     ExpiredTokenError,
@@ -18,8 +20,8 @@ oAuth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserRepository:
     return UserRepositorySQLAlchemy(db)
 
-def get_user_service(user_repository: UserRepository = Depends(get_user_repository)) -> UserService:
-    return UserService(user_repository)
+def get_user_service(password_validator: PasswordValidator,user_repository: UserRepository = Depends(get_user_repository)) -> UserService:
+    return UserService(user_repository, password_validator)
 
 def get_auth_service(user_repository: UserRepository = Depends(get_user_repository)) -> AuthService:
     return AuthService(user_repository)
@@ -32,7 +34,7 @@ async def get_current_user(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
+            detail="Credenciais inválidas",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user
