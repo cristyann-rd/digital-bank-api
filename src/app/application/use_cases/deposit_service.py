@@ -24,7 +24,8 @@ class DepositMoneyUseCase:
         account_number: str,
         amount: Decimal,
         description: str | None = None,
-    ) -> None:
+    ) -> Transaction:
+        
         async with self.uow:
             account = await self.uow.accounts.get_by_account_for_update(
                 user_id=user_id,
@@ -52,6 +53,7 @@ class DepositMoneyUseCase:
             )
 
             await self.uow.accounts.save(account)
-            await self.uow.transactions.create(transaction)
+            await self.uow.deposit_transactions.create(transaction)
 
             await self.uow.commit()
+            return transaction

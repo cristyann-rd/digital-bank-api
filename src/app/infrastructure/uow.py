@@ -1,6 +1,9 @@
 from src.app.domain.unit_of_work import UnitOfWork
-from src.app.infrastructure.repositories.transaction_repository_sqlalchemy import (
-    TransactionRepositorySQLAlchemy,
+from src.app.infrastructure.repositories.deposit_repository_sqlalchemy import (
+    DepositRepositorySQLAlchemy,
+)
+from src.app.infrastructure.repositories.withdraw_repository_sqlalchemy import (
+    WithdrawRepositorySQLAlchemy,
 )
 from src.app.infrastructure.repositories.account_repository_sqlalchemy import (
     AccountRepositorySQLAlchemy,
@@ -14,7 +17,8 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         self.committed = False
 
         self.accounts = AccountRepositorySQLAlchemy(session)
-        self.transactions = TransactionRepositorySQLAlchemy(session)
+        self.deposit_transactions = DepositRepositorySQLAlchemy(session)
+        self.withdraw_transactions = WithdrawRepositorySQLAlchemy(session)
 
     async def __aenter__(self):
         self.committed = False

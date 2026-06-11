@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from decimal import Decimal
 from enum import Enum
 from uuid import UUID
@@ -27,12 +27,28 @@ class TransactionTypeResponse(str, Enum):
     DEPOSIT = "DEPOSIT"
     WITHDRAW = "WITHDRAW"
 
-class AccountTransactionResponse(BaseModel):
+class AccountTransactionResponseDeposit(BaseModel):
     transaction_id: UUID
     account_id: UUID
     amount: Decimal
     balance_after: Decimal
-    transaction_type: TransactionTypeResponse
-    description: str | None = None
+    transaction_type: TransactionTypeResponse = TransactionTypeResponse.DEPOSIT
     created_at: datetime | None = None
+
+class AccountTransactionResponseWithdraw(BaseModel):
+    transaction_id: UUID
+    account_id: UUID
+    amount: Decimal
+    balance_after: Decimal
+    transaction_type: TransactionTypeResponse = TransactionTypeResponse.WITHDRAW
+    created_at: datetime | None = None
+    
+class DepositRequest(BaseModel):
+    account_number: str
+    amount: Decimal = Field(gt=0)
+    
+
+class WithdrawRequest(BaseModel):
+    account_number: str
+    amount: Decimal = Field(gt=0)
     

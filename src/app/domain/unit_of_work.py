@@ -1,12 +1,14 @@
 from abc import ABC, abstractmethod
 
 from src.app.domain.repositories.account_repository import AccountRepository
-from src.app.domain.repositories.transaction_repository import AccountTransactionRepository
+from src.app.domain.repositories.deposit_repository import DepositTransactionRepository
+from src.app.domain.repositories.withdraw_repository import WithdrawTransactionRepository
 
 
 class UnitOfWork(ABC):
     accounts: AccountRepository
-    transactions: AccountTransactionRepository
+    deposit_transactions: DepositTransactionRepository
+    withdraw_transactions: WithdrawTransactionRepository
 
     async def __aenter__(self):
         return self

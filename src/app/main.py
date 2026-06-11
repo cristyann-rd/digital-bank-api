@@ -5,6 +5,7 @@ from src.app.interfaces.api.v1.routes.auth import router as auth_router
 from src.app.interfaces.api.v1.routes.account import private_router as account_router_private
 from src.app.interfaces.api.v1.routes.user import public_router as user_router_public
 from src.app.interfaces.api.v1.routes.user import private_router as user_router_private
+from src.app.interfaces.api.v1.routes.transaction import private_router as transaction_router_private
 
 def create_app():
 
@@ -23,4 +24,8 @@ def create_app():
     app.include_router(user_router_public)
     app.include_router(user_router_private)
     app.include_router(account_router_private)
+    app.include_router(transaction_router_private)
+
     return app
+
+

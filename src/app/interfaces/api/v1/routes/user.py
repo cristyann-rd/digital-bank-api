@@ -50,5 +50,5 @@ async def update_user(user_id: UUID, user_data: UserCreate, _: UserResponse = De
     user = await user_service.get_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
-    updated_user = await user_service.update_user(user_id, user_data.dict(exclude_unset=True))
+    updated_user = await user_service.update_user(user_id, user_data.model_dump(exclude_unset=True))
     return updated_user

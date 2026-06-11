@@ -9,6 +9,7 @@ from src.app.infrastructure.database.base import Base
 from src.app.core.config import settings
 from src.app.infrastructure.models.account import AccountModel
 from src.app.infrastructure.models.user import UserModel
+from src.app.infrastructure.models.transaction import TransactionModel
 
 
 

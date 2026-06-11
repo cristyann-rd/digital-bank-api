@@ -62,18 +62,15 @@ class Account:
     def deposit(self, amount: Decimal) -> None:
         if not self.is_active:
             raise InactiveAccountError("Conta inativa.")
-
-        if amount <= Decimal("0"):
-            raise InvalidAmountError("O valor do depósito deve ser maior que zero.")
-
+    
+        amount = self._validate_amount(amount)    
         self.balance += amount
 
     def withdraw(self, amount: Decimal) -> None:
         if not self.is_active:
             raise InactiveAccountError("Conta inativa.")
 
-        if amount <= Decimal("0"):
-            raise InvalidAmountError("O valor da retirada deve ser maior que zero.")
+        amount = self._validate_amount(amount)
 
         if self.balance < amount:
             raise InsufficientFundsError("Saldo insuficiente.")
