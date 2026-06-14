@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.app.domain.entities.user import User
-from src.app.interfaces.api.dependency.account_dependencies import (
+from app.domain.entities.user import User
+from app.interfaces.api.dependency.account_dependencies import (
     AccountUseCase,
     get_account_use_case,
 )
-from src.app.interfaces.api.dependency.user_dependencies import get_current_user
-from src.app.interfaces.api.schemas.account.account import (
+from app.interfaces.api.dependency.user_dependencies import get_current_user
+from app.interfaces.api.schemas.account.account import (
     AccountCreate,
     AccountUpdate,
     AccountResponse,

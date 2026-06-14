@@ -1,404 +1,172 @@
 # Bank DIO API
 
-API REST desenvolvida com FastAPI para cadastro de usuarios, autenticacao JWT e base para operacoes bancarias. O projeto usa uma arquitetura em camadas, separando dominio, casos de uso, infraestrutura e interface HTTP.
+API REST de banco digital com cadastro de usuarios, autenticacao JWT Bearer,
+contas e movimentacoes. O projeto usa FastAPI, PostgreSQL, SQLAlchemy async,
+Alembic e uma separacao inspirada em Clean Architecture.
 
-## Sumario
+## Estado atual
 
-- [Visao geral](#visao-geral)
-- [Tecnologias](#tecnologias)
-- [Requisitos](#requisitos)
-- [Instalacao](#instalacao)
-- [Configuracao](#configuracao)
-- [Execucao local](#execucao-local)
-- [Endpoints](#endpoints)
-- [Exemplos de uso](#exemplos-de-uso)
-- [Estrutura de pastas](#estrutura-de-pastas)
-- [Scripts e comandos uteis](#scripts-e-comandos-uteis)
-- [Testes](#testes)
-- [Deploy](#deploy)
-- [Contribuicao](#contribuicao)
+O fluxo principal esta funcional e coberto por testes:
 
-## Visao geral
+- `POST /api/v1/users`;
+- `POST /api/v1/auth/login`;
+- `GET /api/v1/users/me`;
+- `GET /health`;
+- Swagger em `/docs`;
+- repositorio de usuarios com `AsyncSession`;
+- migrations Alembic sem `create_all` no startup;
+- 12 testes automatizados.
 
-O Bank DIO e uma API backend para um contexto bancario. Atualmente, a aplicacao possui endpoints para:
+Contas, deposito e saque existem, mas ainda precisam de testes de integracao em
+PostgreSQL, idempotencia e geracao distribuida de numero de conta antes de um
+uso real.
 
-- cadastro de usuarios;
-- login com email e senha;
-- emissao de token JWT Bearer;
-- consulta, listagem e atualizacao de usuarios autenticados;
-- persistencia em PostgreSQL usando SQLAlchemy assincrono;
-- migrations com Alembic.
-
-O codigo tambem contem entidades, modelos e servicos iniciais para contas e transacoes bancarias, incluindo geracao de digito de conta, mas essas funcionalidades ainda nao estao expostas em rotas HTTP registradas no `app/main.py`.
-
-## Tecnologias
+## Stack
 
 - Python 3.13
-- FastAPI
-- Uvicorn
+- FastAPI e Uvicorn
 - Pydantic e Pydantic Settings
-- SQLAlchemy 2.x com suporte assincrono
+- SQLAlchemy 2 async e AsyncPG
 - PostgreSQL
-- AsyncPG
-- Psycopg
-- Alembic
-- python-jose para JWT
-- pwdlib com Argon2 para hash de senhas
-- Poetry para gerenciamento de dependencias
+- Alembic e Psycopg
+- python-jose
+- pwdlib com Argon2
+- Pytest, pytest-asyncio, HTTPX e aiosqlite
+- Poetry
 
-Dependencias adicionais presentes no projeto incluem `python-multipart`, `email-validator`, `python-dotenv`, `redis`, `structlog`, `slowapi`, `tenacity`, `pendulum` e `uuid6`.
+## Arquitetura
+
+```text
+src/app/
+|-- domain/          # entidades, regras, excecoes e contratos
+|-- application/     # casos de uso e portas
+|-- infrastructure/  # SQLAlchemy, repositorios, conexao e UoW
+|-- interfaces/api/  # FastAPI, schemas, dependencias e rotas
+|-- core/            # configuracao e adaptadores de seguranca
+`-- main.py           # composicao da aplicacao
+```
+
+Fluxo principal:
+
+```text
+HTTP -> route -> service/use case -> repository -> AsyncSession -> PostgreSQL
+```
+
+Detalhes: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Requisitos
 
-Antes de executar o projeto, instale:
-
-- Python `>=3.13,<4.0.0`
-- Poetry `>=2.0`
-- PostgreSQL em execucao
-- Git, opcional para versionamento
+- Python `>=3.13,<4.0`
+- Poetry 2.x
+- PostgreSQL
 
 ## Instalacao
 
-Clone o repositorio e acesse a pasta onde esta o `pyproject.toml`:
-
-```bash
-git clone <url-do-repositorio>
-cd Desafio_dio/src
-```
-
-Instale as dependencias com Poetry:
+Na raiz do repositorio:
 
 ```bash
 poetry install
 ```
 
-Ative o ambiente virtual, se desejar:
+Crie a configuracao local:
+
+```powershell
+Copy-Item src/.env.example src/.env
+```
+
+Em Bash:
 
 ```bash
-poetry shell
+cp src/.env.example src/.env
 ```
 
-Tambem e possivel executar os comandos diretamente com `poetry run`.
+Edite `src/.env` e use uma chave forte exclusiva por ambiente.
 
-## Configuracao
-
-A aplicacao carrega variaveis de ambiente a partir de um arquivo `.env` localizado na pasta `src`.
-
-Crie o arquivo:
-
-```bash
-cp .env.example .env
-```
-
-Caso nao exista um `.env.example`, crie manualmente um arquivo `.env` com o conteudo abaixo:
-
-```env
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=bank_dio
-
-SECRET_KEY=altere-esta-chave-em-producao
-ALGORITHM=HS256
-TOKEN_EXPIRE_MINUTES=60
-```
-
-As variaveis usadas pelo projeto sao:
+## Variaveis de ambiente
 
 | Variavel | Obrigatoria | Descricao |
 | --- | --- | --- |
-| `DB_USER` | Sim | Usuario do PostgreSQL. |
-| `DB_PASSWORD` | Sim | Senha do PostgreSQL. |
-| `DB_HOST` | Sim | Host do banco de dados. |
-| `DB_PORT` | Sim | Porta do banco de dados. |
-| `DB_NAME` | Sim | Nome do banco de dados. |
-| `SECRET_KEY` | Sim | Chave usada para assinar tokens JWT. |
-| `ALGORITHM` | Nao | Algoritmo JWT. Padrao: `HS256`. |
-| `TOKEN_EXPIRE_MINUTES` | Sim | Tempo de expiracao do token de acesso, em minutos. |
+| `DB_USER` | sim | Usuario PostgreSQL |
+| `DB_PASSWORD` | sim | Senha PostgreSQL |
+| `DB_HOST` | sim | Host PostgreSQL |
+| `DB_PORT` | sim | Porta PostgreSQL |
+| `DB_NAME` | sim | Banco da aplicacao |
+| `SECRET_KEY` | sim | Chave HS256 com pelo menos 32 caracteres |
+| `ALGORITHM` | nao | Somente `HS256`; padrao `HS256` |
+| `TOKEN_EXPIRE_MINUTES` | sim | Expiracao do access token |
 
-> Observacao: o `Settings` do projeto monta automaticamente as URLs `postgresql+asyncpg://...` e `postgresql+psycopg://...` a partir dessas variaveis.
+O arquivo esperado e `src/.env`. Nao versione o `.env`.
 
-## Banco de dados e migrations
+## Banco e migrations
 
-Crie o banco no PostgreSQL antes de aplicar as migrations:
-
-```sql
-CREATE DATABASE bank_dio;
-```
-
-Execute as migrations:
+Crie o banco configurado em `DB_NAME` e aplique:
 
 ```bash
 poetry run alembic upgrade head
 ```
 
-Para criar uma nova migration a partir dos modelos:
+Historico:
 
 ```bash
-poetry run alembic revision --autogenerate -m "descricao da alteracao"
+poetry run alembic history
 ```
 
-Para desfazer a ultima migration:
+Nova migration:
 
 ```bash
-poetry run alembic downgrade -1
+poetry run alembic revision --autogenerate -m "descricao"
 ```
 
-## Execucao local
+Revise migrations autogeradas antes de aplicar.
 
-Execute a API com Uvicorn:
+## Executar a API
 
 ```bash
-poetry run uvicorn app.main:create_app --factory --reload
+poetry run uvicorn app.main:app --reload
 ```
 
-Por padrao, a aplicacao ficara disponivel em:
+URLs:
 
 - API: <http://127.0.0.1:8000>
-- Swagger UI: <http://127.0.0.1:8000/docs>
+- Health: <http://127.0.0.1:8000/health>
+- Swagger: <http://127.0.0.1:8000/docs>
 - ReDoc: <http://127.0.0.1:8000/redoc>
 
-## Endpoints
+## Endpoints principais
 
-### Autenticacao
-
-| Metodo | Rota | Autenticacao | Descricao |
+| Metodo | Rota | Auth | Funcao |
 | --- | --- | --- | --- |
-| `POST` | `/api/v1/auth/login` | Nao | Autentica o usuario e retorna um token JWT Bearer. |
+| `POST` | `/api/v1/users` | nao | Criar usuario |
+| `POST` | `/api/v1/auth/login` | nao | Emitir access token |
+| `GET` | `/api/v1/users/me` | Bearer | Usuario atual |
+| `GET` | `/health` | nao | Health check |
 
-O login usa `OAuth2PasswordRequestForm`, portanto deve ser enviado como `application/x-www-form-urlencoded`.
-
-### Usuarios
-
-| Metodo | Rota | Autenticacao | Descricao |
-| --- | --- | --- | --- |
-| `POST` | `/api/v1/users/register` | Nao | Cadastra um novo usuario. |
-| `GET` | `/api/v1/users/` | Sim | Lista usuarios cadastrados. |
-| `GET` | `/api/v1/users/{user_id}` | Sim | Busca um usuario por ID. |
-| `PATCH` | `/api/v1/users/{user_id}` | Sim | Atualiza dados de um usuario. |
-
-Rotas privadas exigem o header:
-
-```http
-Authorization: Bearer <access_token>
-```
-
-## Exemplos de uso
-
-### Health check manual
-
-A aplicacao nao possui uma rota especifica de health check. Para validar se o servidor subiu corretamente, acesse a documentacao interativa:
-
-```bash
-curl http://127.0.0.1:8000/docs
-```
-
-### Cadastrar usuario
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/users/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Maria Silva",
-    "email": "maria@example.com",
-    "password": "Senha123"
-  }'
-```
-
-Resposta esperada:
-
-```json
-{
-  "id": 1,
-  "email": "maria@example.com"
-}
-```
-
-### Fazer login
+Login usa formulario OAuth2:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/auth/login \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=maria@example.com&password=Senha123"
+  -d "username=maria@example.com&password=SenhaForte1!"
 ```
 
-Resposta esperada:
-
-```json
-{
-  "access_token": "<jwt>",
-  "token_type": "bearer"
-}
-```
-
-### Listar usuarios autenticados
-
-```bash
-curl http://127.0.0.1:8000/api/v1/users/ \
-  -H "Authorization: Bearer <jwt>"
-```
-
-### Buscar usuario por ID
-
-```bash
-curl http://127.0.0.1:8000/api/v1/users/1 \
-  -H "Authorization: Bearer <jwt>"
-```
-
-### Atualizar usuario
-
-```bash
-curl -X PATCH http://127.0.0.1:8000/api/v1/users/1 \
-  -H "Authorization: Bearer <jwt>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Maria Souza",
-    "email": "maria.souza@example.com",
-    "password": "NovaSenha123"
-  }'
-```
-
-## Estrutura de pastas
-
-```text
-src/
-|-- alembic.ini
-|-- pyproject.toml
-|-- poetry.lock
-|-- migrations/
-|   |-- env.py
-|   `-- versions/
-|-- tests/
-|   `-- __init__.py
-`-- app/
-    |-- main.py
-    |-- core/
-    |   |-- config.py
-    |   `-- security.py
-    |-- domain/
-    |   |-- entities/
-    |   |-- policy/
-    |   |-- repositories/
-    |   `-- validators/
-    |-- application/
-    |   |-- services/
-    |   `-- use_cases/
-    |-- infrastructure/
-    |   |-- database/
-    |   |-- events/
-    |   |-- models/
-    |   `-- repositories/
-    `-- interfaces/
-        `-- api/
-            |-- dependencies.py
-            |-- schemas/
-            `-- v1/routes/
-```
-
-### Camadas principais
-
-- `app/main.py`: cria a aplicacao FastAPI e registra as rotas.
-- `app/core`: configuracoes da aplicacao e utilitarios de seguranca.
-- `app/domain`: entidades, contratos de repositorios, politicas e validadores.
-- `app/application`: casos de uso e servicos de aplicacao.
-- `app/infrastructure`: banco de dados, modelos SQLAlchemy, repositorios concretos e eventos.
-- `app/interfaces/api`: schemas Pydantic, dependencias FastAPI e rotas HTTP.
-- `migrations`: configuracao e historico de migrations Alembic.
-- `tests`: pacote reservado para testes automatizados.
-
-## Principais funcionalidades
-
-- Cadastro de usuario com email unico.
-- Hash de senha usando `pwdlib` com algoritmo recomendado.
-- Autenticacao por email e senha.
-- Geracao de token JWT com expiracao configuravel.
-- Protecao de rotas privadas com `OAuth2PasswordBearer`.
-- Repositorio assincrono de usuarios com SQLAlchemy.
-- Migration inicial da tabela `users`.
-- Base de dominio para contas e transacoes.
-- Geracao de digito de conta por soma dos digitos e modulo 10.
-
-## Scripts e comandos uteis
-
-O projeto ainda nao define scripts customizados no `pyproject.toml`. Use os comandos abaixo durante o desenvolvimento:
-
-| Comando | Descricao |
-| --- | --- |
-| `poetry install` | Instala as dependencias. |
-| `poetry run uvicorn app.main:create_app --factory --reload` | Executa a API localmente com reload. |
-| `poetry run alembic upgrade head` | Aplica migrations pendentes. |
-| `poetry run alembic downgrade -1` | Reverte a ultima migration. |
-| `poetry run alembic revision --autogenerate -m "mensagem"` | Gera uma nova migration. |
+Veja payloads e status em [API.md](API.md).
 
 ## Testes
 
-A pasta `tests` existe, mas ainda nao ha testes automatizados implementados.
-
-Recomendacao para evolucao:
-
 ```bash
-poetry add --group dev pytest pytest-asyncio httpx
+poetry run pytest -q
 ```
 
-Depois de adicionar testes, execute:
+Os testes HTTP nao usam o banco de producao. Os testes de repositorio usam
+SQLite async isolado para validar o contrato, persistencia e constraint unica.
+Veja [TESTING.md](TESTING.md).
 
-```bash
-poetry run pytest
-```
+## Limites antes de producao
 
-Sugestoes de cobertura inicial:
-
-- validacao de cadastro de usuarios;
-- bloqueio de email duplicado;
-- login com credenciais validas e invalidas;
-- acesso a rotas privadas com e sem token;
-- testes de repositorio usando banco de teste;
-- validacao da politica de senha.
-
-## Deploy
-
-Para publicar a API em producao:
-
-1. Configure um banco PostgreSQL gerenciado ou dedicado.
-2. Defina variaveis de ambiente seguras no provedor de hospedagem.
-3. Use uma `SECRET_KEY` forte e exclusiva por ambiente.
-4. Instale as dependencias com `poetry install --only main`.
-5. Execute as migrations com `poetry run alembic upgrade head`.
-6. Inicie a aplicacao com Uvicorn.
-
-Exemplo de comando para producao:
-
-```bash
-poetry run uvicorn app.main:create_app --factory --host 0.0.0.0 --port 8000
-```
-
-Em ambientes produtivos, recomenda-se executar a aplicacao atras de um proxy reverso, como Nginx, ou usar um servidor/process manager adequado ao provedor escolhido.
-
-## Pontos de atencao
-
-- As rotas de conta e transacao ainda nao estao expostas na API.
-- A migration atual cria apenas a tabela `users`.
-- O arquivo `.env` nao deve ser versionado.
-- A politica de senha exige simbolo em `PASSWORD_POLICY`, mas o validador atual ainda nao verifica simbolos.
-- O projeto mistura imports `app...` e `src.app...`; padronizar os imports pode evitar problemas em alguns ambientes.
-
-## Contribuicao
-
-1. Crie uma branch para sua alteracao:
-bash
-git checkout -b feature/minha-alteracao
-
-2. Instale as dependencias e configure o `.env`.
-
-3. Implemente a alteracao mantendo a separacao entre dominio, aplicacao, infraestrutura e interface.
-
-4. Adicione ou atualize testes quando aplicavel.
-
-5. Execute migrations e testes localmente.
-
-6. Abra um pull request descrevendo o problema, a solucao e os impactos.
-
-## Licenca
-
-Este projeto ainda nao possui uma licenca definida. Adicione um arquivo `LICENSE` antes de distribuir ou publicar o codigo.
+- adicionar RBAC/ABAC e revisar listagem global de usuarios;
+- refresh token, revogacao, `iss`, `aud` e rotacao de chaves;
+- rate limiting, MFA e trilha de auditoria;
+- observabilidade com metricas, logs estruturados e traces;
+- PostgreSQL efemero no CI para validar migrations;
+- numero de conta alocado pelo banco em ambiente multiworker;
+- idempotencia e testes de concorrencia para operacoes financeiras.

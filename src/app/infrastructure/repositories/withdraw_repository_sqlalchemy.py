@@ -1,16 +1,12 @@
-from typing import cast
-from uuid import UUID
-
-from sqlalchemy import delete, select
-from sqlalchemy.engine import CursorResult
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.domain.entities.transaction import Transaction, TransactionType
-from src.app.domain.repositories.transaction_repository import AccountTransactionRepository
-from src.app.infrastructure.models.transaction import TransactionModel
+from app.domain.entities.transaction import Transaction, TransactionType
+from app.domain.repositories.withdraw_repository import WithdrawTransactionRepository
+from app.infrastructure.models.transaction import TransactionModel
 
 
-class DepositRepositorySQLAlchemy(AccountTransactionRepository):
+class WithdrawRepositorySQLAlchemy(WithdrawTransactionRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -33,10 +29,21 @@ class DepositRepositorySQLAlchemy(AccountTransactionRepository):
             account_number=transaction.account_number,
             amount=transaction.amount,
             balance_after=transaction.balance_after,
-            transaction_type=TransactionType.DEPOSIT,
+            transaction_type=TransactionType.WITHDRAW,
             description=transaction.description,
             is_active=transaction.is_active,
         )
 
         self.session.add(new_transaction)
         await self.session.flush()
+
+    async def list_by_transactions_withdraw(self, account_number: str, transaction_type: TransactionType = TransactionType.WITHDRAW) -> list[Transaction]:
+        stmt = select(TransactionModel).where(
+            TransactionModel.account_number == account_number,
+            TransactionModel.transaction_type == transaction_type
+        ).order_by(TransactionModel.created_at.desc())
+
+        result = await self.session.execute(stmt)
+        transactions = result.scalars().all()
+
+        return [self._to_domain(db_transaction) for db_transaction in transactions]

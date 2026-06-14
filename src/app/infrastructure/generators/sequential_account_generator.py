@@ -1,4 +1,4 @@
-from src.app.domain.services.account_number_generator import AccountNumberGenerator
+from app.domain.services.account_number_generator import AccountNumberGenerator
 
 
 class SequentialAccountGenerator(AccountNumberGenerator):

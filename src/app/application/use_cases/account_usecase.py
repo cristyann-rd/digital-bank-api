@@ -1,9 +1,9 @@
 from uuid import UUID
 
 
-from src.app.domain.entities.account import Account
-from src.app.domain.unit_of_work import UnitOfWork
-from src.app.domain.services.account_number_generator import AccountNumberGenerator
+from app.domain.entities.account import Account
+from app.domain.unit_of_work import UnitOfWork
+from app.domain.services.account_number_generator import AccountNumberGenerator
 
 
 

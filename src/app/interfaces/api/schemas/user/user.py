@@ -1,15 +1,27 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
 from uuid import UUID
 
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+
 class UserCreate(BaseModel):
-    name: str
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1, max_length=120)
     email: EmailStr
-    password: str 
+    password: str = Field(min_length=1, max_length=128)
+
+
+class UserUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    email: EmailStr | None = None
+    password: str | None = Field(default=None, min_length=1, max_length=128)
+
 
 class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     name: str
     email: EmailStr
-
-  
-    model_config = ConfigDict(from_attributes=True)

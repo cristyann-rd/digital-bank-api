@@ -2,24 +2,23 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import Boolean, String, DateTime, Numeric, ForeignKey, func
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.app.infrastructure.database.base import Base
+from app.infrastructure.database.base import Base
 
 
 class AccountModel(Base):
     __tablename__ = "accounts"
 
     account_id: Mapped[uuid.UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         ForeignKey("users.id"),
         nullable=False,
     )

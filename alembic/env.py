@@ -5,18 +5,21 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from src.app.infrastructure.database.base import Base
-from src.app.core.config import settings
-from src.app.infrastructure.models.account import AccountModel
-from src.app.infrastructure.models.user import UserModel
+from app.core.config import settings
+from app.infrastructure.database.base import Base
+from app.infrastructure.models.account import AccountModel
+from app.infrastructure.models.transaction import TransactionModel
+from app.infrastructure.models.user import UserModel
 
 
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-print("DATABASE URL:", settings.database_url)
-config.set_main_option("sqlalchemy.url", settings.database_url)
+config.set_main_option(
+    "sqlalchemy.url",
+    settings.sync_database_url.replace("%", "%%"),
+)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -47,7 +50,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url", settings.database_url)
+    url = config.get_main_option("sqlalchemy.url", settings.sync_database_url)
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -74,7 +77,8 @@ def run_migrations_online() -> None:
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
-            target_metadata=target_metadata
+            target_metadata=target_metadata,
+            compare_type=True,
         )
 
         with context.begin_transaction():
