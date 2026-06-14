@@ -161,17 +161,6 @@ Os testes HTTP nao usam o banco de producao. Os testes de repositorio usam
 SQLite async isolado para validar o contrato, persistencia e constraint unica.
 Veja [TESTING.md](TESTING.md).
 
-## Documentacao
-
-- [Diagnostico tecnico](docs/DIAGNOSTIC.md)
-- [Arquitetura](ARCHITECTURE.md)
-- [Seguranca](SECURITY.md)
-- [Testes](TESTING.md)
-- [API](API.md)
-- [Guia de estudo](docs/STUDY_GUIDE.md)
-- [ADRs](docs/adr/)
-- [Changelog](CHANGELOG.md)
-
 ## Limites antes de producao
 
 - adicionar RBAC/ABAC e revisar listagem global de usuarios;
