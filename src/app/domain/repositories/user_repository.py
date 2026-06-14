@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from abc import ABC, abstractmethod
-from src.app.domain.entities.user import User
+from app.domain.entities.user import User
 
 
 class UserRepository(ABC):

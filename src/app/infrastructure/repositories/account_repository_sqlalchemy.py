@@ -5,9 +5,9 @@ from sqlalchemy import delete, select
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.domain.entities.account import Account
-from src.app.domain.repositories.account_repository import AccountRepository
-from src.app.infrastructure.models.account import AccountModel
+from app.domain.entities.account import Account
+from app.domain.repositories.account_repository import AccountRepository
+from app.infrastructure.models.account import AccountModel
 
 
 class AccountRepositorySQLAlchemy(AccountRepository):

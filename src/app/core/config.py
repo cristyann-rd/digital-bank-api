@@ -1,9 +1,11 @@
 from pathlib import Path
+from typing import Literal
+
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
 
 
 class Settings(BaseSettings):
@@ -18,10 +20,10 @@ class Settings(BaseSettings):
     db_host: str
     db_port: int
     db_name: str
-    
-    algorithm: str = "HS256"
-    secret_key: str
-    token_expire_minutes: int
+
+    algorithm: Literal["HS256"] = "HS256"
+    secret_key: str = Field(min_length=32)
+    token_expire_minutes: int = Field(gt=0)
 
     @property
     def database_url(self) -> str:
@@ -33,22 +35,9 @@ class Settings(BaseSettings):
     @property
     def sync_database_url(self) -> str:
         return (
-            f"postgresql+psycopg2://{self.db_user}:{self.db_password}"
+            f"postgresql+psycopg://{self.db_user}:{self.db_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
+
 settings = Settings()  # type: ignore[call-arg]
-
-"""
-@dataclass(frozen=True, slots=True)
-class JwtConfig:
-    issuer: str
-    audience: str
-    private_key: str
-    public_key: str
-    key_id: str
-    algorithm: Literal["RS256"]
-    access_token_ttl_minutes: int
-    leeway_seconds: int = 30
-
-"""

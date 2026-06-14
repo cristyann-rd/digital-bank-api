@@ -1,9 +1,9 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.domain.entities.transaction import Transaction, TransactionType
+from app.domain.entities.transaction import Transaction, TransactionType
 from app.domain.repositories.withdraw_repository import WithdrawTransactionRepository
-from src.app.infrastructure.models.transaction import TransactionModel
+from app.infrastructure.models.transaction import TransactionModel
 
 
 class WithdrawRepositorySQLAlchemy(WithdrawTransactionRepository):

@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from sqlalchemy import select
-from src.app.domain.entities.transaction import Transaction, TransactionType
+from app.domain.entities.transaction import Transaction, TransactionType
 from app.domain.repositories.deposit_repository import DepositTransactionRepository
-from src.app.infrastructure.models.transaction import TransactionModel
+from app.infrastructure.models.transaction import TransactionModel
 
 
 class DepositRepositorySQLAlchemy(DepositTransactionRepository):

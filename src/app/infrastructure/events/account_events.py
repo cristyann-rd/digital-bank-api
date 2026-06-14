@@ -1,7 +1,7 @@
 from sqlalchemy import event
-from src.app.infrastructure.models.account import (AccountModel)
+from app.infrastructure.models.account import (AccountModel)
 
-from src.app.application.use_cases.account_digit import (calculate_account_digit)
+from app.application.use_cases.account_digit import (calculate_account_digit)
 
 
 @event.listens_for(AccountModel, "before_insert")

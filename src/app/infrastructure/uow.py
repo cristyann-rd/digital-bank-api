@@ -1,11 +1,11 @@
-from src.app.domain.unit_of_work import UnitOfWork
-from src.app.infrastructure.repositories.deposit_repository_sqlalchemy import (
+from app.domain.unit_of_work import UnitOfWork
+from app.infrastructure.repositories.deposit_repository_sqlalchemy import (
     DepositRepositorySQLAlchemy,
 )
-from src.app.infrastructure.repositories.withdraw_repository_sqlalchemy import (
+from app.infrastructure.repositories.withdraw_repository_sqlalchemy import (
     WithdrawRepositorySQLAlchemy,
 )
-from src.app.infrastructure.repositories.account_repository_sqlalchemy import (
+from app.infrastructure.repositories.account_repository_sqlalchemy import (
     AccountRepositorySQLAlchemy,
 )
 

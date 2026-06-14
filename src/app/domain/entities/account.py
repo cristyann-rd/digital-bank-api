@@ -5,9 +5,11 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 
-from src.app.domain.exceptions.account_exceptions import (InactiveAccountError, 
-                                                          InvalidAmountError, 
-                                                          InsufficientFundsError)
+from app.domain.exceptions.account_exceptions import (
+    InactiveAccountError,
+    InsufficientFundsError,
+    InvalidAmountError,
+)
 
 MONEY_QUANTUM = Decimal("0.01")
 @dataclass
@@ -76,4 +78,3 @@ class Account:
             raise InsufficientFundsError("Saldo insuficiente.")
 
         self.balance -= amount
-   

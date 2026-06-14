@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 
-from src.app.domain.repositories.account_repository import AccountRepository
-from src.app.domain.repositories.deposit_repository import DepositTransactionRepository
-from src.app.domain.repositories.withdraw_repository import WithdrawTransactionRepository
+from app.domain.repositories.account_repository import AccountRepository
+from app.domain.repositories.deposit_repository import DepositTransactionRepository
+from app.domain.repositories.withdraw_repository import WithdrawTransactionRepository
 
 
 class UnitOfWork(ABC):

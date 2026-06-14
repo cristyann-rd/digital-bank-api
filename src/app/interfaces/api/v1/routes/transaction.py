@@ -1,67 +1,88 @@
-from decimal import Decimal
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from fastapi import APIRouter, Depends, HTTPException
-
-
-from src.app.interfaces.api.schemas.account.account import(
-    DepositRequest,
-    WithdrawRequest,
-    AccountTransactionResponseDeposit, 
-    AccountTransactionResponseWithdraw
-                                                           ) 
-
-from src.app.interfaces.api.dependency.transaction_dependencies import (
+from app.domain.exceptions.account_exceptions import (
+    AccountNotFoundError,
+    AccountOwnershipError,
+    InactiveAccountError,
+    InsufficientFundsError,
+    InvalidAmountError,
+)
+from app.interfaces.api.dependency.transaction_dependencies import (
     DepositMoneyUseCase,
     WithdrawMoneyUseCase,
     get_deposit_service,
     get_withdraw_service,
 )
+from app.interfaces.api.dependency.user_dependencies import get_current_user
+from app.interfaces.api.schemas.account.account import (
+    AccountTransactionResponseDeposit,
+    AccountTransactionResponseWithdraw,
+    DepositRequest,
+    WithdrawRequest,
+)
 
-from src.app.interfaces.api.dependency.user_dependencies import get_current_user
- 
 
 private_router = APIRouter(
     prefix="/api/v1/transactions",
     tags=["Transactions"],
 )
 
-@private_router.post(
-    "/deposit",
-    status_code=200,
-)
 
+def map_account_error(exc: Exception) -> HTTPException:
+    if isinstance(exc, AccountNotFoundError):
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if isinstance(exc, AccountOwnershipError):
+        return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+    if isinstance(exc, InvalidAmountError):
+        return HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        )
+    return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+
+
+@private_router.post("/deposit", status_code=status.HTTP_200_OK)
 async def deposit(
     payload: DepositRequest,
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
     deposit_service: DepositMoneyUseCase = Depends(get_deposit_service),
 ):
-    transaction_deposit = await deposit_service.execute(
-        user_id=current_user.id,
-        account_number=payload.account_number,
-        amount=payload.amount,
-    )
-    if not transaction_deposit:
-        raise HTTPException(status_code=400, detail="Erro ao realizar depósito")
-    
-    return AccountTransactionResponseDeposit.model_validate(transaction_deposit)
+    try:
+        transaction = await deposit_service.execute(
+            user_id=current_user.id,
+            account_number=payload.account_number,
+            amount=payload.amount,
+        )
+    except (
+        AccountNotFoundError,
+        AccountOwnershipError,
+        InvalidAmountError,
+        InactiveAccountError,
+    ) as exc:
+        raise map_account_error(exc) from exc
 
-@private_router.post(
-    "/withdraw",
-    status_code=200,
-)
+    return AccountTransactionResponseDeposit.model_validate(transaction)
 
-async def withdraw(   
+
+@private_router.post("/withdraw", status_code=status.HTTP_200_OK)
+async def withdraw(
     payload: WithdrawRequest,
-    current_user = Depends(get_current_user),
-    withdraw_service : WithdrawMoneyUseCase = Depends(get_withdraw_service),
+    current_user=Depends(get_current_user),
+    withdraw_service: WithdrawMoneyUseCase = Depends(get_withdraw_service),
 ):
+    try:
+        transaction = await withdraw_service.execute(
+            user_id=current_user.id,
+            account_number=payload.account_number,
+            amount=payload.amount,
+        )
+    except (
+        AccountNotFoundError,
+        AccountOwnershipError,
+        InvalidAmountError,
+        InactiveAccountError,
+        InsufficientFundsError,
+    ) as exc:
+        raise map_account_error(exc) from exc
 
-    transaction_withdraw = await withdraw_service.execute(
-        user_id=current_user.id,
-        account_number=payload.account_number,
-        amount=payload.amount,
-    )
-    if not transaction_withdraw:
-        raise HTTPException(status_code=400, detail="Erro ao realizar saque")
-    
-    return AccountTransactionResponseWithdraw.model_validate(transaction_withdraw)
+    return AccountTransactionResponseWithdraw.model_validate(transaction)

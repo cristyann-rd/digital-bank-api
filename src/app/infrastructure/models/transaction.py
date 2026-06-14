@@ -2,20 +2,19 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import String, DateTime, Numeric, ForeignKey, Boolean, func
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.app.domain.entities.transaction import TransactionType
-from src.app.infrastructure.database.base import Base
+from app.domain.entities.transaction import TransactionType
+from app.infrastructure.database.base import Base
 
 
 class TransactionModel(Base):
     __tablename__ = "transactions"
 
     transaction_id: Mapped[uuid.UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
     )
@@ -28,7 +27,7 @@ class TransactionModel(Base):
     )
 
     account_id: Mapped[uuid.UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         ForeignKey("accounts.account_id"),
         nullable=False,
         index=True,

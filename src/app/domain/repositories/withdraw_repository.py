@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from src.app.domain.entities.transaction import Transaction,TransactionType
+from app.domain.entities.transaction import Transaction,TransactionType
 
 
 class WithdrawTransactionRepository(ABC):

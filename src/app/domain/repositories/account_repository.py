@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from src.app.domain.entities.account import Account
+from app.domain.entities.account import Account
 
 
 class AccountRepository(ABC):
